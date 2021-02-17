@@ -93,6 +93,8 @@ def run():
 
         HO_fin = HarmonicOscillator(offset=15, q0=q0)
         HOs = (HO_init, HO_fin)
+
+        # Plot potentials
         for HO in HOs:
             ys = HO.pot(qs)
             # Truncate potentials
