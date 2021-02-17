@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 import numpy as np
 from numpy.polynomial.hermite import Hermite
+from scipy.integrate import simpson
 from scipy.special import factorial
 
 
@@ -17,7 +18,7 @@ def get_ho(k=1, m=1, nu=2, q0=0, offset=0.0, v_max=5):
         coef[v] = 1
         hermites.append(Hermite(coef))
 
-    w = (k / m) ** 0.5
+    # w = (k / m) ** 0.5
 
     def ho_pot(q):
         """Harmonic oscillator potential."""
@@ -86,41 +87,51 @@ def run():
     )
 
     def update_plot(q0):
+        # Clear axes
         for ax_ in (ax, ax_ovlp):
             ax_.cla()
 
         HO_fin = HarmonicOscillator(offset=15, q0=q0)
+        HOs = (HO_init, HO_fin)
+        for HO in HOs:
+            ys = HO.pot(qs)
+            # Truncate potentials
+            ys[ys >= HO.offset + trunc_pot] = np.nan
+            ax.plot(qs, ys)
+
+        # Calculate and plot wavefunctions
         for v in vs:
-            for HO in (HO_init, HO_fin):
-                ys = HO.pot(qs)
-                # Truncate potentials
-                ys[ys >= HO.offset + trunc_pot] = np.nan
-                ax.plot(qs, ys)
+            for HO in HOs:
                 lvl = HO.level(v)
                 ax.axhline(lvl, color="black", ls="--", lw=0.5)
                 wf = HO.wf(qs, v)
                 ax.plot(qs, wf + lvl)
 
+        # Calculate overlaps between GS WF and ES wavefunctions
         overlaps = np.zeros_like(vs, dtype=float)
         for v in vs:
             wf = HO_fin.wf(qs, v)
-            ovlp = (wf_gs_init * wf).sum()**2
+            ovlp = simpson(wf_gs_init * wf, qs) ** 2
             overlaps[v] = ovlp
         ax_ovlp.stem(overlaps)
+        # Label
         for v in vs:
             xy = (v, min(45, overlaps[v] + 5))
             ax_ovlp.annotate(f"0-{v}", xy, ha="center")
-        ax_ovlp.set_ylim(0, 50.)
+        ax_ovlp.set_ylim(0, 1.0)
+        ax_ovlp.set_title("Wavefunction overlaps")
+        ax_ovlp.set_ylabel("Overlap")
 
-        sqrt2 = 2**0.5
+        sqrt2 = 2 ** 0.5
         ax.axvline(-sqrt2)
         ax.axvline(sqrt2)
         ax.set_ylim(0, 30)
         ax.set_xlabel("q")
-        ax.set_ylabel("$\Delta E$")
+        ax.set_ylabel(r"$\Delta E$")
+        ax.set_title("Franck-Condon principle")
 
     ax_q0 = plt.axes((0.2, 0.025, 0.5, 0.025))
-    slider_q0 = Slider(ax_q0, "$\Delta q$", -3, 3, valinit=0, valfmt="%f")
+    slider_q0 = Slider(ax_q0, r"$\Delta q$", -3, 3, valinit=0, valfmt="%f")
     slider_q0.on_changed(update_plot)
     update_plot(0.0)
 
