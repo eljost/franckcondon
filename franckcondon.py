@@ -118,7 +118,7 @@ def run():
         ax_ovlp.stem(overlaps)
         # Label
         for v in vs:
-            xy = (v, min(45, overlaps[v] + 5))
+            xy = (v, min(45, overlaps[v]))
             ax_ovlp.annotate(f"0-{v}", xy, ha="center")
         ax_ovlp.set_ylim(0, 1.0)
         ax_ovlp.set_title("Wavefunction overlaps")
@@ -130,7 +130,7 @@ def run():
         ax.set_ylim(0, 30)
         ax.set_xlabel("q")
         ax.set_ylabel(r"$\Delta E$")
-        ax.set_title("Franck-Condon principle")
+        ax.set_title("Franck-Condon Principle")
 
     ax_q0 = plt.axes((0.2, 0.025, 0.5, 0.025))
     slider_q0 = Slider(ax_q0, r"$\Delta q$", -3, 3, valinit=0, valfmt="%f")
